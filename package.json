@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "jimp": "^1.6.0",
     "next": "16.1.1",
+    "openai": "^6.16.0",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },

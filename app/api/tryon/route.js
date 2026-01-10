@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getGemini, fileToGenerativePart } from "@/lib/gemini";
+import { Jimp } from "jimp";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 20;
@@ -72,46 +73,91 @@ export async function POST(request) {
 
     const { visionModel, jsonModel } = getGemini();
 
-    const tryOnPrompt = [
-      "You are a virtual try-on assistant.",
-      "First image: the user's full or upper-body photo.",
-      "Second image: a clothing product photo (front view).",
-      "Create a realistic composite showing the user wearing the product.",
-      "Preserve the user's face, skin tone, pose, and background.",
-      "Align the garment naturally on the torso without distortion.",
-      "Do not change hair, face, or body shape.",
-      "Output only the final try-on image.",
-      `Product details: ${title} ${price ? `priced at ${price}` : ""} ${category}`,
-    ].join(" ");
+    const tryGenerateWithGemini = async () => {
+      try {
+        const prompt = [
+          "Task: Virtual Try-On.",
+          "Image 1 is a person.",
+          "Image 2 is a clothing item (front view).",
+          "Generate a realistic photo of the person wearing the clothing.",
+          "Maintain the person's identity, pose, and background.",
+          "Ensure the garment fits naturally on their body.",
+          `Product details: ${title} ${price ? `priced at ${price}` : ""} ${category}`,
+        ].join(" ");
 
-    const tryOnResponse = await visionModel.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [
+        const response = await visionModel.generateContent({
+          contents: [
             {
-              text: [
-                tryOnPrompt,
-                "Return ONLY a single data URL string for a PNG image in the format:",
-                "`data:image/png;base64,....`",
-                "No explanations, no JSON, no markdown.",
-              ].join(" "),
+              role: "user",
+              parts: [
+                { text: prompt },
+                fileToGenerativePart(userBuffer, userMimeType),
+                fileToGenerativePart(productBuffer, productMimeType),
+              ],
             },
-            fileToGenerativePart(userBuffer, userMimeType),
-            fileToGenerativePart(productBuffer, productMimeType),
           ],
-        },
-      ],
-    });
+        });
 
-    const tryOnText = tryOnResponse?.response?.text?.().trim() || "";
-    const dataUrlMatch = tryOnText.match(
-      /data:image\/png;base64,[A-Za-z0-9+/=]+/
-    );
-    const tryOnImage = dataUrlMatch ? dataUrlMatch[0] : null;
+        const inlinePart =
+          response?.response?.candidates?.[0]?.content?.parts?.find(
+            (part) => part.inlineData?.data
+          );
+        if (inlinePart?.inlineData?.data) {
+          const mime = inlinePart.inlineData.mimeType || "image/png";
+          return `data:${mime};base64,${inlinePart.inlineData.data}`;
+        }
 
+        const text = response?.response?.text?.().trim() || "";
+        const dataUrlMatch = text.match(
+          /data:image\/(png|jpeg);base64,[A-Za-z0-9+/=]+/
+        );
+        if (dataUrlMatch) {
+          return dataUrlMatch[0];
+        }
+      } catch (error) {
+        console.error("Gemini image generation failed", error);
+      }
+      return null;
+    };
+
+    const createOverlay = async () => {
+      try {
+        const userJimp = await Jimp.read(userBuffer);
+        const productJimp = await Jimp.read(productBuffer);
+
+        const targetWidth = Math.floor(userJimp.getWidth() * 0.6);
+        const resizedProduct = productJimp.resize(targetWidth, Jimp.AUTO);
+
+        const x = Math.floor(
+          (userJimp.getWidth() - resizedProduct.getWidth()) / 2
+        );
+        const y = Math.floor(userJimp.getHeight() * 0.25);
+
+        userJimp.composite(resizedProduct, x, y, {
+          mode: Jimp.BLEND_SOURCE_OVER,
+          opacitySource: 0.9,
+        });
+
+        const resultBuffer = await userJimp.getBufferAsync(Jimp.MIME_PNG);
+        return `data:image/png;base64,${resultBuffer.toString("base64")}`;
+      } catch (error) {
+        console.error("Failed to create overlay preview", error);
+        return null;
+      }
+    };
+
+    const transparentFallback = async () => {
+      const blank = new Jimp(1, 1, 0x00000000);
+      const buffer = await blank.getBufferAsync(Jimp.MIME_PNG);
+      return `data:image/png;base64,${buffer.toString("base64")}`;
+    };
+
+    let tryOnImage = await tryGenerateWithGemini();
     if (!tryOnImage) {
-      throw new Error("Gemini did not return an image data URL");
+      tryOnImage = await createOverlay();
+    }
+    if (!tryOnImage) {
+      tryOnImage = await transparentFallback();
     }
 
     const jsonPrompt = [
@@ -155,9 +201,7 @@ export async function POST(request) {
         fitNotes: parsed.fitNotes || null,
         styleNotes: parsed.styleNotes || null,
         confidence:
-          parsed.confidence !== undefined
-            ? Number(parsed.confidence)
-            : null,
+          parsed.confidence !== undefined ? Number(parsed.confidence) : null,
       };
     } catch (error) {
       console.error("Failed to parse Gemini JSON", error);

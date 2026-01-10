@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { clothes } from "../data/clothes";
 import ClothingCard from "../components/ClothingCard";
 
+
 export default function Home() {
   const [selectedClothes, setSelectedClothes] = useState([]);
   const router = useRouter();

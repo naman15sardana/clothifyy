@@ -1,21 +1,42 @@
-export default function ClothingCard({ item, selected, onClick }) {
+const fallbackImage =
+  "https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=600&auto=format&fit=crop";
+
+export default function ClothingCard({ item, selected, onSelect }) {
   return (
     <div
-      onClick={onClick}
-      className={`cursor-pointer border rounded-lg p-4 transition
-        ${selected ? "border-black ring-2 ring-black" : "border-gray-300"}
-      `}
+      className={`rounded-xl border p-4 shadow-sm transition ${
+        selected ? "border-black ring-2 ring-black/40" : "border-gray-200"
+      }`}
     >
-      {/* Image container */}
-      <div className="w-full h-100 flex items-center justify-center bg-gray-50">
+      <div className="aspect-[4/5] overflow-hidden rounded-lg bg-gray-100">
         <img
           src={item.image}
           alt={item.name}
-          className="max-h-full max-w-full object-contain"
+          onError={(event) => {
+            event.currentTarget.src = fallbackImage;
+          }}
+          className="h-full w-full object-cover"
         />
       </div>
 
-      <p className="mt-2 text-center font-medium">{item.name}</p>
+      <div className="mt-3 flex items-center justify-between">
+        <div>
+          <p className="font-semibold text-gray-900">{item.name}</p>
+          {item.price ? (
+            <p className="text-sm text-gray-600">{item.price}</p>
+          ) : null}
+        </div>
+        <button
+          onClick={() => onSelect(item)}
+          className={`rounded-full px-4 py-2 text-sm font-medium transition ${
+            selected
+              ? "bg-black text-white"
+              : "bg-gray-200 text-gray-900 hover:bg-gray-300"
+          }`}
+        >
+          {selected ? "Selected" : "Select"}
+        </button>
+      </div>
     </div>
   );
 }

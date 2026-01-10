@@ -89,14 +89,7 @@ export async function POST(request) {
         {
           role: "user",
           parts: [
-            {
-              text: [
-                tryOnPrompt,
-                "Return ONLY a single data URL string for a PNG image in the format:",
-                "`data:image/png;base64,....`",
-                "No explanations, no JSON, no markdown.",
-              ].join(" "),
-            },
+            { text: tryOnPrompt },
             fileToGenerativePart(userBuffer, userMimeType),
             fileToGenerativePart(productBuffer, productMimeType),
           ],
@@ -104,14 +97,26 @@ export async function POST(request) {
       ],
     });
 
-    const tryOnText = tryOnResponse?.response?.text?.().trim() || "";
-    const dataUrlMatch = tryOnText.match(
-      /data:image\/png;base64,[A-Za-z0-9+/=]+/
-    );
-    const tryOnImage = dataUrlMatch ? dataUrlMatch[0] : null;
+    const tryOnParts =
+      tryOnResponse?.response?.candidates?.[0]?.content?.parts || [];
+    const imagePart = tryOnParts.find((part) => part.inlineData?.data);
+    let tryOnImage = null;
+
+    if (imagePart?.inlineData?.data) {
+      const mimeType = imagePart.inlineData.mimeType || "image/png";
+      tryOnImage = `data:${mimeType};base64,${imagePart.inlineData.data}`;
+    } else {
+      const tryOnText = tryOnResponse?.response?.text?.().trim() || "";
+      const dataUrlMatch = tryOnText.match(
+        /data:image\/png;base64,[A-Za-z0-9+/=]+/
+      );
+      tryOnImage = dataUrlMatch ? dataUrlMatch[0] : null;
+    }
 
     if (!tryOnImage) {
-      throw new Error("Gemini did not return an image data URL");
+      throw new Error(
+        "Gemini did not return an image. Set GEMINI_IMAGE_MODEL to an image-capable model."
+      );
     }
 
     const jsonPrompt = [

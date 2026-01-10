@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 export default function ResultPreview({
   image,
   recommendedSize,
@@ -8,6 +10,13 @@ export default function ResultPreview({
   confidence,
   loading,
 }) {
+  const [showPreview, setShowPreview] = useState(false);
+
+  const handleOpen = () => {
+    if (image) setShowPreview(true);
+  };
+  const handleClose = () => setShowPreview(false);
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
       <div className="flex items-center justify-between">
@@ -31,11 +40,20 @@ export default function ResultPreview({
               Generating preview…
             </div>
           ) : image ? (
-            <img
-              src={image}
-              alt="Try-on preview"
-              className="h-64 w-full rounded-lg object-cover"
-            />
+            <button
+              type="button"
+              onClick={handleOpen}
+              className="group relative flex min-h-[16rem] w-full items-center justify-center focus:outline-none"
+            >
+              <img
+                src={image}
+                alt="Try-on preview"
+                className="max-h-[22rem] w-full rounded-lg object-contain transition group-hover:opacity-90"
+              />
+              <span className="absolute right-3 top-3 rounded-full bg-black/70 px-3 py-1 text-xs font-medium text-white opacity-0 transition group-hover:opacity-100">
+                View larger
+              </span>
+            </button>
           ) : (
             <div className="flex h-64 items-center justify-center text-sm text-gray-500">
               No preview yet
@@ -70,6 +88,31 @@ export default function ResultPreview({
           </div>
         </div>
       </div>
+
+      {showPreview ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          onClick={handleClose}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="relative max-h-[90vh] max-w-5xl">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="absolute right-2 top-2 rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-gray-900 shadow hover:bg-white"
+            >
+              Close
+            </button>
+            <img
+              src={image}
+              alt="Try-on preview enlarged"
+              className="max-h-[90vh] w-full rounded-lg object-contain shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

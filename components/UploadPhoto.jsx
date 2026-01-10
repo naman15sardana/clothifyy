@@ -103,11 +103,13 @@ export default function UploadPhoto({ onChange, preview }) {
 
       <div className="mt-4 rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3">
         {preview ? (
-          <img
-            src={preview}
-            alt="User preview"
-            className="h-64 w-full rounded-lg object-cover"
-          />
+          <div className="flex min-h-[16rem] items-center justify-center">
+            <img
+              src={preview}
+              alt="User preview"
+              className="max-h-[22rem] w-full rounded-lg object-contain"
+            />
+          </div>
         ) : (
           <div className="flex h-64 items-center justify-center text-sm text-gray-500">
             No photo selected

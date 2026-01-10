@@ -27,17 +27,19 @@ export default function ResultPreview({
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-3">
           {loading ? (
-            <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+            <div className="flex min-h-[320px] items-center justify-center text-sm text-gray-500">
               Generating preview…
             </div>
           ) : image ? (
-            <img
-              src={image}
-              alt="Try-on preview"
-              className="h-64 w-full rounded-lg object-cover"
-            />
+            <div className="flex min-h-[320px] items-center justify-center bg-black/5">
+              <img
+                src={image}
+                alt="Try-on preview"
+                className="max-h-[520px] w-full rounded-lg object-contain"
+              />
+            </div>
           ) : (
-            <div className="flex h-64 items-center justify-center text-sm text-gray-500">
+            <div className="flex min-h-[320px] items-center justify-center text-sm text-gray-500">
               No preview yet
             </div>
           )}

@@ -19,11 +19,8 @@ export default function Home() {
     if (exists) {
       setSelectedClothes(selectedClothes.filter((c) => c.id !== item.id));
     } else {
-      if (selectedClothes.length >= 3) {
-        alert("You can select up to 3 outfits only");
-        return;
-      }
-      setSelectedClothes([...selectedClothes, item]);
+      // Only one item can be active; replace selection with the new item.
+      setSelectedClothes([item]);
     }
   };
 
@@ -74,7 +71,7 @@ export default function Home() {
       <h1 className="text-3xl font-bold text-center mb-4">AI Virtual Try-On</h1>
 
       <p className="text-center mb-6 text-gray-600">
-        Select up to 3 outfits to try on
+        Select an outfit to try on
       </p>
 
       <div className="mx-auto mb-10 flex max-w-3xl flex-col gap-2 rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">

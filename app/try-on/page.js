@@ -33,6 +33,8 @@ function TryOnContent() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
+  const [productUrlInput, setProductUrlInput] = useState("");
+  const [productLoading, setProductLoading] = useState(false);
   const [result, setResult] = useState({
     tryOnImage: "",
     recommendedSize: null,
@@ -84,10 +86,49 @@ function TryOnContent() {
     setProduct(fallbackProduct);
   }, [paramsKey, searchParams]);
 
+  useEffect(() => {
+    setProductUrlInput(product.productUrl || "");
+  }, [product.productUrl]);
+
   const handlePhotoChange = (file, preview) => {
     setUserFile(file);
     setUserPreview(preview);
     setError("");
+  };
+
+  const handleLoadProductFromUrl = async () => {
+    const trimmed = productUrlInput.trim();
+    if (!trimmed) {
+      setError("Please paste a product URL to load.");
+      return;
+    }
+
+    setProductLoading(true);
+    setStatus("Fetching product from URL…");
+    setError("");
+    try {
+      const response = await fetch("/api/product", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: trimmed }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to load product");
+      }
+      setProduct({
+        title: data.title || "Product",
+        price: data.price || "",
+        image: data.image || fallbackProduct.image,
+        category: data.category || "",
+        productUrl: data.url || trimmed,
+      });
+      setStatus("Product loaded from URL");
+    } catch (err) {
+      setError(err.message || "Failed to load product from URL");
+    } finally {
+      setProductLoading(false);
+    }
   };
 
   const handleGenerate = async () => {
@@ -196,6 +237,32 @@ function TryOnContent() {
                     View product
                   </a>
                 ) : null}
+
+                <div className="mt-4 space-y-2">
+                  <label className="text-xs uppercase tracking-wide text-gray-500">
+                    Product URL
+                  </label>
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <input
+                      type="url"
+                      value={productUrlInput}
+                      onChange={(e) => setProductUrlInput(e.target.value)}
+                      placeholder="Paste a product link (e.g. H&M product page)"
+                      className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-black focus:outline-none focus:ring-1 focus:ring-black"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleLoadProductFromUrl}
+                      disabled={productLoading}
+                      className="rounded-full bg-black px-4 py-2 text-sm font-semibold text-white shadow disabled:bg-gray-400"
+                    >
+                      {productLoading ? "Loading…" : "Load"}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Fetch product title and image from a store URL.
+                  </p>
+                </div>
               </div>
               <div className="h-32 w-24 overflow-hidden rounded-lg bg-gray-100">
                 {product.image ? (

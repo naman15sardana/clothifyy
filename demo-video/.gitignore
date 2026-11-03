@@ -1,0 +1,10 @@
+# Dependencies, caches and temporary renders
+node_modules/
+out/
+.remotion/
+*.log
+.env*
+
+# Final publishable files live in media/ and are committed:
+#   media/clothifyy-demo.mp4
+#   media/preview.gif

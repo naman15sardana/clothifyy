@@ -1,0 +1,20 @@
+{
+  "name": "clothifyy-demo-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion source for the Clothifyy demo video",
+  "scripts": {
+    "preview": "remotion studio src/index.js",
+    "render": "remotion render src/index.js ClothifyyDemo out/clothifyy-demo-raw.mp4 --codec=h264 --crf=18",
+    "render:gif-source": "remotion render src/index.js ClothifyyDemo out/gif-source.mp4 --codec=h264 --scale=0.5",
+    "still": "remotion still src/index.js ClothifyyDemo out/still.png"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.533",
+    "@remotion/google-fonts": "^4.0.533",
+    "@remotion/transitions": "^4.0.533",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "remotion": "^4.0.533"
+  }
+}

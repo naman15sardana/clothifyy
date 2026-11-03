@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Clothifyy
 
-## Getting Started
+**Try your next look.** Clothifyy is an AI virtual try-on app: pick a piece from the catalog (or paste a product URL), upload or capture your photo, and preview the outfit on yourself.
 
-First, run the development server:
+Live app: [clothifyy-ivory.vercel.app](https://clothifyy-ivory.vercel.app)
+
+## Video Demo
+
+[![Clothifyy demo — click to watch the full video](demo-video/media/preview.gif)](demo-video/media/clothifyy-demo.mp4)
+
+▶️ **[Watch the full demo (MP4, 56 s)](demo-video/media/clothifyy-demo.mp4)**
+
+> **Note:** The before/after comparison in the demo is an *illustrative preview* — the catalog's Red Hoodie layered over a sample illustration — not an AI-generated try-on result. The app screens are recreated in [Remotion](https://www.remotion.dev); source and render commands are in [`demo-video/`](demo-video/README.md).
+
+*Built at a hackathon.*
+
+## How it works
+
+1. **Choose an item:** pick one from the built-in catalog (hoodies, t-shirts, shirts, jackets), or **paste a product link** from an online store. The app pulls the product's title, price, and image from the page.
+2. **Add your photo:** upload or capture a picture of yourself.
+3. **See the result:** the Gemini API generates an image of you wearing the selected item, shown next to the product details.
+
+## Built with
+
+Next.js (App Router) · React · Tailwind CSS · Google Gemini API · deployed on Vercel
+
+- `app/api/product`: extracts product details from a store link
+- `app/api/tryon`: sends your photo and the product image to Gemini and returns the try-on image
+- `data/clothes.js`: the built-in catalog
+
+## Run it locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Create a `.env.local` file with your own key:
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```
+GEMINI_API_KEY=...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Then open [http://localhost:3000](http://localhost:3000).
